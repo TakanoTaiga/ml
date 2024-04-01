@@ -1,3 +1,10 @@
 /runs
 /datasets
 *.pt
+*.jpg
+*.jpeg
+*.gif
+*.png
+*.json
+*.txt
+*.DS_Store
