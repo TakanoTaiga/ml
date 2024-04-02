@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import random
+import datetime
 
 
 class COCO2YOLO:
@@ -107,24 +108,17 @@ class COCO2YOLO:
                     line = str(category_id) + ' ' + box
                     f.write(line + '\n')
 
+    def get_categories_size(self):
+        return len(self.labels['categories'])
 
-if __name__ == '__main__':
-    source_dir = "./input_label"
-    output_dir = './out_label'
+def get_date():
+    t_delta = datetime.timedelta(hours=9)
+    timezon_jst = datetime.timezone(t_delta, 'JST')
+    now = datetime.datetime.now(timezon_jst)
+    return now.strftime('%m_%d_%H_%M_%S')
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    files = os.listdir(source_dir)
-
-    for file in files:
-        file_path = os.path.join(source_dir, file)
-        if ".folder_ml" in file_path:
-            continue
-        c2y = COCO2YOLO(file_path, output_dir)
-        c2y.coco2yolo(output_dir)
-
-    output_yolo_dir = './yolo_dataset'
+def yolo2ultralytics(timestamp):
+    output_yolo_dir = './datasets/'+ timestamp +'_dataset'
 
     if not os.path.exists(output_yolo_dir):
         os.makedirs(output_yolo_dir)
@@ -144,7 +138,63 @@ if __name__ == '__main__':
         else:
             shutil.copy(label_file_path, output_yolo_dir + "/labels/val")
             shutil.copy(image_file_path, output_yolo_dir + "/images/val")
-    
-    
 
+def create_data_yaml(categories_size, timestamp):
+    output_dir = "./out_yaml/" + timestamp +'_dataset'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    try:
+        file = open(output_dir + "/data.yaml", 'w')
+
+        file.write("path: " + timestamp +'_dataset' + " \n")
+        file.write("train:  images/train \n")
+        file.write("val: images/val \n")
+        file.write("names: \n")
+
+        for i in range(categories_size):
+            file.write("    " + str(i) + ": \n")
+
+    except Exception as e:
+        print(e)
+    finally:
+        file.close()
     
+def create_train_pyfile(timestamp):
+    try:
+        file = open("train_rtdetr_" + timestamp + ".py", 'w')
+
+        file.write("from ultralytics import RTDETR \n")
+        file.write("model = RTDETR('rtdetr-l.pt') \n")
+        file.write("results = model.train(data='./out_yaml/" + timestamp + "_dataset/data.yaml', epochs=3, imgsz=640, project='./runs/') \n")
+
+    except Exception as e:
+        print(e)
+    finally:
+        file.close()
+
+
+
+if __name__ == '__main__':
+    create_time = get_date()
+    source_dir = "./input_label"
+    output_dir = './out_label'
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    files = os.listdir(source_dir)
+
+    cat_size = 0
+
+    for file in files:
+        file_path = os.path.join(source_dir, file)
+        if ".folder_ml" in file_path:
+            continue
+        c2y = COCO2YOLO(file_path, output_dir)
+        c2y.coco2yolo(output_dir)
+        cat_size += c2y.get_categories_size()
+
+    yolo2ultralytics(create_time)
+    create_data_yaml(cat_size, create_time)
+    create_train_pyfile(create_time)

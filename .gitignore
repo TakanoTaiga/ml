@@ -1,5 +1,9 @@
 /runs
 /datasets
+/out_image
+/out_label
+/out_yaml
+
 *.pt
 *.jpg
 *.jpeg
@@ -8,3 +12,5 @@
 *.json
 *.txt
 *.DS_Store
+
+*train_rtdetr*.py
