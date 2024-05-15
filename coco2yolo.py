@@ -173,6 +173,9 @@ def create_train_pyfile(timestamp):
     finally:
         file.close()
 
+def clear_ws():
+    shutil.rmtree("./out_image")
+    shutil.rmtree("./out_yaml")
 
 
 if __name__ == '__main__':
@@ -198,3 +201,5 @@ if __name__ == '__main__':
     yolo2ultralytics(create_time)
     create_data_yaml(cat_size, create_time)
     create_train_pyfile(create_time)
+
+    clear_ws()
