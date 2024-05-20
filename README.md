@@ -38,19 +38,19 @@ It's easy to use, just use `docekr-compose`:
 ```bash
 git clone https://github.com/jsbroks/coco-annotator.git
 cd coco-annotator
-docekr-compose up
+docekr compose up
 ```
 
 Now, access [localhost:5000](http://localhost:5000/). You can stop it with ctrl-c, but afterward, start and stop using the following commands:
 
 ```bash:start
 cd coco-annotator
-docker-compose start
+docker compose start
 ```
 
 ```bash:stop
 cd coco-annotator
-docker-compose stop
+docker compose stop
 ```
 
 Once it's up, create a dataset in coco-annotator and copy the contents of the `out_image` folder prepared earlier into it. (Do not delete or crop any images within the `out_image` folder).
