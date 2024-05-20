@@ -72,7 +72,6 @@ You will see many folders generated. Once the `train_rtdetr_xxxxx.py` files are 
 
 Now, let's start the training.
 
-**For Jetson Environment:**
 Start the container and then execute the generated python file:
 
 ```bash
@@ -80,13 +79,6 @@ Start the container and then execute the generated python file:
 ```
 
 After starting, (replace `xxxxx` appropriately):
-
-```bash
-python3 train_rtdetr_xxxxx.py
-```
-
-**For x86+NVIDIA GPU Environment:**
-Execute the generated python file without starting the container:
 
 ```bash
 python3 train_rtdetr_xxxxx.py
