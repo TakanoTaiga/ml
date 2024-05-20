@@ -131,7 +131,7 @@ def yolo2ultralytics(timestamp):
     files = os.listdir(output_dir)
     for file in files:
         label_file_path = os.path.join(output_dir, file)
-        image_file_path = os.path.join('./out_image', file.replace(".txt",".jpg"))
+        image_file_path = os.path.join('./.out_image', file.replace(".txt",".jpg"))
         if random.uniform(0, 100) > 20:
             shutil.copy(label_file_path, output_yolo_dir + "/labels/train")
             shutil.copy(image_file_path, output_yolo_dir + "/images/train")
@@ -140,7 +140,7 @@ def yolo2ultralytics(timestamp):
             shutil.copy(image_file_path, output_yolo_dir + "/images/val")
 
 def create_data_yaml(categories_size, timestamp):
-    output_dir = "./out_yaml/" + timestamp +'_dataset'
+    output_dir = "./.out_yaml/" + timestamp +'_dataset'
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -166,22 +166,18 @@ def create_train_pyfile(timestamp):
 
         file.write("from ultralytics import RTDETR \n")
         file.write("model = RTDETR('rtdetr-l.pt') \n")
-        file.write("results = model.train(data='./out_yaml/" + timestamp + "_dataset/data.yaml', epochs=3, imgsz=640, project='./runs/') \n")
+        file.write("results = model.train(data='./.out_yaml/" + timestamp + "_dataset/data.yaml', epochs=10, imgsz=640, project='./train_results/runs_" + timestamp + "/') \n")
 
     except Exception as e:
         print(e)
     finally:
         file.close()
 
-def clear_ws():
-    shutil.rmtree("./out_image")
-    shutil.rmtree("./out_yaml")
-
 
 if __name__ == '__main__':
     create_time = get_date()
     source_dir = "./input_label"
-    output_dir = './out_label'
+    output_dir = './.out_label'
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -202,4 +198,3 @@ if __name__ == '__main__':
     create_data_yaml(cat_size, create_time)
     create_train_pyfile(create_time)
 
-    clear_ws()

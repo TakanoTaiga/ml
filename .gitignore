@@ -1,8 +1,9 @@
-/runs
+/runs*
 /datasets
-/out_image
-/out_label
-/out_yaml
+/.out_image
+/.out_label
+/.out_yaml
+/train_results
 
 *.pt
 *.jpg
