@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# https://qiita.com/k_ikasumipowder/items/5e71208b7c7ae3e4fe7c
+
 ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Prevent running as root.
@@ -29,8 +31,9 @@ PLATFORM="$(uname -m)"
 
 if [ $PLATFORM = "x86_64" ]; then
     echo "x86"
-    docker run -it --rm --runtime nvidia --shm-size=32G -v $ROOT/datasets:/usr/src/datasets -v $ROOT:/home/root -w /home/root --network host ultralytics/ultralytics:latest
+    docker build . -f  ./Dockerfile.x86 -t takanotaiga/mlops:latest
+    docker run -it --rm --gpus all --runtime nvidia --shm-size=32G -v $ROOT/datasets:/usr/src/datasets -v $ROOT:/home/root -w /home/root --network host takanotaiga/mlops:latest
 else
     echo "jetson"
-    docker run -it --rm --runtime nvidia --shm-size=32G -v $ROOT/datasets:/usr/src/datasets -v $ROOT:/home/root -w /home/root --network host ultralytics/ultralytics:latest-jetson
+    docker run -it --rm --gpus all --runtime nvidia --shm-size=32G -v $ROOT/datasets:/usr/src/datasets -v $ROOT:/home/root -w /home/root --network host ultralytics/ultralytics:8.2.63-jetson-jetpack5
 fi
