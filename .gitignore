@@ -4,6 +4,7 @@
 /.out_label
 /.out_yaml
 /train_results
+/flagged
 
 *.pt
 *.jpg
@@ -13,5 +14,6 @@
 *.json
 *.txt
 *.DS_Store
+*.engine
 
 *train_rtdetr*.py

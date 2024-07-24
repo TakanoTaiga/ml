@@ -4,42 +4,23 @@ from ultralytics import RTDETR
 import pandas as pd
 import tempfile
 import io
-
-ml_model_list = ["embryo_v0", "rt-detr", "robocon"]
-
-model_rt_detr = RTDETR("rtdetr-l.pt")
-model_embryo_v0 = RTDETR("./embryo.pt")
+import glob
 
 
 def inference_image(image, mlmodel_name: str, confidence: float):
-    if mlmodel_name == "rt-detr":
-        results = model_rt_detr.predict(image, conf=confidence / 100, half=False)
-    elif mlmodel_name == "embryo_v0":
-        results = model_embryo_v0.predict(image, conf=confidence / 100, half=False)
-    else:
-        results = model_rt_detr.predict(image, conf=confidence / 100, half=False)
-
-
+    model = RTDETR(mlmodel_name)
+    results =  model.predict(image, conf=confidence / 100)
     annotated_frame = results[0].plot()
-
     results = results[0].cpu()
 
     boxes_info = []
-
     for box_data in results.boxes:
         box = box_data.xywh[0]
         xmin = max(0, min(int(box[0] - box[2] / 2), 65535))
         ymin = max(0, min(int(box[1] - box[3] / 2), 65535))
         xmax = max(0, min(int(box[0] + box[2] / 2), 65535))
         ymax = max(0, min(int(box[1] + box[3] / 2), 65535))
-
-        if mlmodel_name == "rt-detr":
-            boxes_info.append([xmin, ymin, xmax, ymax, float(box_data.conf), model_rt_detr.names[int(box_data.cls)]])
-        elif mlmodel_name == "embryo_v0":
-            boxes_info.append([xmin, ymin, xmax, ymax, float(box_data.conf), model_embryo_v0.names[int(box_data.cls)]])
-        else:
-            boxes_info.append([xmin, ymin, xmax, ymax, float(box_data.conf), model_rt_detr.names[int(box_data.cls)]])
-
+        boxes_info.append([xmin, ymin, xmax, ymax, float(box_data.conf), model.names[int(box_data.cls)]])
 
     df = pd.DataFrame(boxes_info, columns=["xmin", "ymin", "xmax", "ymax", "confidence", "label"])
     csv_buffer = io.StringIO()
@@ -48,6 +29,7 @@ def inference_image(image, mlmodel_name: str, confidence: float):
     return annotated_frame, csv_data
 
 def infer_video(videos, mlmodel_name: str, confidence: float):
+    model = RTDETR(mlmodel_name)
     output_files = []
     boxes_info = []
     for video in videos:
@@ -59,13 +41,7 @@ def infer_video(videos, mlmodel_name: str, confidence: float):
                 ret, frame = cap.read()
                 if not ret:
                     break
-
-                if mlmodel_name == "rt-detr":
-                    results = model_rt_detr.predict(frame, conf=confidence / 100, half=False)
-                elif mlmodel_name == "embryo_v0":
-                    results = model_embryo_v0.predict(frame, conf=confidence / 100, half=False)
-                else:
-                    results = model_rt_detr.predict(frame, conf=confidence / 100, half=False)
+                results =  model.predict(frame, conf=confidence / 100)
 
                 annotated_frame = results[0].plot()
                 output_frames.append(annotated_frame)
@@ -76,13 +52,8 @@ def infer_video(videos, mlmodel_name: str, confidence: float):
                     ymin = max(0, min(int(box[1] - box[3] / 2), 65535))
                     xmax = max(0, min(int(box[0] + box[2] / 2), 65535))
                     ymax = max(0, min(int(box[1] + box[3] / 2), 65535))
+                    boxes_info.append([xmin, ymin, xmax, ymax, float(box_data.conf), model.names[int(box_data.cls)]])
 
-                    if mlmodel_name == "rt-detr":
-                        boxes_info.append([xmin, ymin, xmax, ymax, float(box_data.conf), model_rt_detr.names[int(box_data.cls)]])
-                    elif mlmodel_name == "embryo_v0":
-                        boxes_info.append([xmin, ymin, xmax, ymax, float(box_data.conf), model_embryo_v0.names[int(box_data.cls)]])
-                    else:
-                        boxes_info.append([xmin, ymin, xmax, ymax, float(box_data.conf), model_rt_detr.names[int(box_data.cls)]])
         finally:
             cap.release()
 
@@ -116,7 +87,7 @@ with gr.Blocks() as main_ui:
             [
                 gr.Image(type="numpy", label="Upload an Image"),
                 gr.Dropdown(
-                    ml_model_list, label="ML Model" ,info="Will add more animals later!"
+                    glob.glob("./ml_model/*"), value="rtdetr-l.pt", label="ML Model" ,info="Will add more animals later!"
                 ),
                 gr.Slider(0, 100, value=75, label="Confidence", step=5, info="Choose between 0% and 100%"),
             ],
@@ -131,7 +102,7 @@ with gr.Blocks() as main_ui:
             [
                 gr.File(label="Upload a Video", file_count="multiple", file_types=["mp4","mpg"]),
                 gr.Dropdown(
-                    ml_model_list, label="ML Model" ,info="Will add more animals later!"
+                    glob.glob("./ml_model/*"), value="rtdetr-l.pt", label="ML Model", info="Will add more animals later!"
                 ),
                 gr.Slider(0, 100, value=75, label="Confidence", step=5, info="Choose between 0% and 100%"),
             ],
@@ -142,4 +113,4 @@ with gr.Blocks() as main_ui:
         )
 
 if __name__ == "__main__":
-    main_ui.launch()
+    main_ui.launch(server_name="0.0.0.0")
